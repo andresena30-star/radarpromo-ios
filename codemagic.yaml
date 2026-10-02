@@ -1,0 +1,92 @@
+workflows:
+  radarpromo-ios-release:
+    name: "RadarPromo iOS Release (iPhone Only) & TestFlight"
+    instance_type: mac_mini_m2
+    max_build_duration: 35
+    environment:
+      groups:
+        - app_store_credentials
+      vars:
+        APP_STORE_APPLE_ID: "6809920571"
+        BUNDLE_ID: "br.com.radarpromo.app"
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+      xcode: 26.4
+      cocoapods: default
+      node: 20
+    triggering:
+      events:
+        - push
+        - tag
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: true
+        - pattern: 'v*'
+          include: true
+          source: true
+    scripts:
+      - name: "Instalar Dependencias e Sincronizar Capacitor iOS"
+        script: |
+          set -e
+          npm install
+          node scripts/prepare-ios.js
+          npx cap add ios || true
+          npx cap sync ios
+
+      - name: "Configurar Target como iPhone Only (TARGETED_DEVICE_FAMILY = 1)"
+        script: |
+          set -e
+          # Forca TARGETED_DEVICE_FAMILY = "1" no projeto gerado do Capacitor para eliminar exigencia de screenshots iPad
+          sed -i '' 's/TARGETED_DEVICE_FAMILY = "1,2"/TARGETED_DEVICE_FAMILY = "1"/g' ios/App/App.xcodeproj/project.pbxproj || true
+          sed -i '' 's/TARGETED_DEVICE_FAMILY = 1,2/TARGETED_DEVICE_FAMILY = 1/g' ios/App/App.xcodeproj/project.pbxproj || true
+
+      - name: "Injetar AppIcon Oficial 1024x1024 no Assets do iOS"
+        script: |
+          set -e
+          mkdir -p ios/App/App/Assets.xcassets/AppIcon.appiconset
+          cp resources/assets/AppIcon-1024.png ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+          cp resources/assets/AppIcon-1024.png ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
+
+      - name: "Inicializar Chaveiro Temporario Isolado"
+        script: |
+          keychain initialize
+
+      - name: "Provisionamento Automatico com App Store Connect API"
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles --workspace "$XCODE_WORKSPACE"
+
+      - name: "Auto-Incremento do Numero de Build"
+        script: |
+          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          NEXT_BUILD_NUMBER=$(($LATEST_BUILD_NUMBER + 1))
+          echo "Proximo build number: $NEXT_BUILD_NUMBER"
+          cd ios/App
+          agvtool new-version -all $NEXT_BUILD_NUMBER
+
+      - name: "Compilar Pacote IPA Assinado Oficial"
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+      email:
+        recipients:
+          - andresena30@gmail.com
+        notify:
+          success: true
+          failure: true

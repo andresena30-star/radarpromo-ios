@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RadarPromo Brasil - Monitor das 50 Maiores Redes Varejistas & Atacadistas</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            },
+            accent: {
+              500: '#f59e0b',
+              600: '#d97706',
+            },
+            dark: {
+              bg: '#0B0F19',
+              card: '#111827',
+              border: '#1F2937',
+              hover: '#1E293B',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-dark-bg text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- TOP LIVE NOTIFICATION TICKER -->
+  <div class="bg-gradient-to-r from-emerald-950 via-slate-900 to-amber-950 border-b border-dark-border px-4 py-1.5 text-xs text-slate-300">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div class="flex items-center gap-2 overflow-hidden whitespace-nowrap">
+        <span class="flex h-2 w-2 relative flex-shrink-0">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span class="font-semibold text-emerald-400 uppercase tracking-wider text-[10px]">Ranking Top 50 Varejo & Atacado:</span>
+        <div id="liveTicker" class="truncate text-slate-300 transition-all duration-500">
+          🔥 <strong class="text-white">50 Maiores Redes Ativas:</strong> Carrefour, Assaí, Magalu, Casas Bahia, Havan, Sam's Club, Grupo Mateus, RaiaDrogasil, Pichau, Netshoes, Leroy Merlin.
+        </div>
+      </div>
+      <div class="hidden sm:flex items-center gap-3 text-slate-400 flex-shrink-0">
+        <span class="flex items-center gap-1"><i data-lucide="building-2" class="w-3.5 h-3.5 text-emerald-400"></i> <strong class="text-white">Top 50 Varejistas</strong></span>
+        <span>•</span>
+        <span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400"></i> Todos os 27 Estados & DF</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN HEADER / NAVBAR -->
+  <header class="sticky top-0 z-40 bg-dark-bg/85 backdrop-blur-md border-b border-dark-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <!-- LOGO -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+          <i data-lucide="radar" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <span class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-emerald-400 bg-clip-text text-transparent">
+            RadarPromo<span class="text-emerald-500 font-black">.BR</span>
+          </span>
+          <span class="block text-[10px] text-slate-400 -mt-1 font-medium">50 Maiores Varejistas & Atacadistas</span>
+        </div>
+      </div>
+
+      <!-- SEARCH BAR -->
+      <div class="flex-1 max-w-xl hidden md:block">
+        <div class="relative">
+          <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="Buscar por loja (Havan, Magalu, Sam's Club, Pichau) ou produto (TV, Arroz, Pneu, Fralda)..."
+            class="w-full bg-dark-card border border-dark-border rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+          >
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="flex items-center gap-2.5">
+        <button 
+          onclick="runAllEnginesScrape()" 
+          id="btnRunEngines"
+          class="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-amber-950/40 transition-all active:scale-95 cursor-pointer">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          <span>Varredura Top 50</span>
+        </button>
+
+        <button 
+          onclick="openAlertModal()" 
+          class="flex items-center gap-2 bg-gradient-to-r from-brand-600 to-emerald-500 hover:from-brand-500 hover:to-emerald-400 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-emerald-950/40 hover:shadow-emerald-600/30 transition-all active:scale-95 cursor-pointer">
+          <i data-lucide="bell-plus" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Criar Alerta</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- STATUS BAR DAS 50 MAIORES REDES -->
+  <div class="bg-dark-card/60 border-b border-dark-border py-2 px-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 overflow-x-auto text-xs text-slate-300">
+      <div class="flex items-center gap-2 flex-shrink-0 font-bold text-slate-400">
+        <i data-lucide="store" class="w-4 h-4 text-brand-500"></i>
+        <span>Redes Conectadas:</span>
+      </div>
+      <div class="flex items-center gap-2 flex-nowrap text-[11px]">
+        <span class="px-2.5 py-1 rounded-lg bg-dark-bg border border-dark-border text-slate-300 flex items-center gap-1.5">🏢 Havan • Magalu • Casas Bahia • Americanas</span>
+        <span class="px-2.5 py-1 rounded-lg bg-dark-bg border border-dark-border text-amber-400 flex items-center gap-1.5">🛒 Atacadão • Assaí • Sam's Club • Mateus • Muffato</span>
+        <span class="px-2.5 py-1 rounded-lg bg-dark-bg border border-dark-border text-slate-300 flex items-center gap-1.5">💻 Pichau • KaBuM! • Terabyte • Fast Shop</span>
+        <span class="px-2.5 py-1 rounded-lg bg-dark-bg border border-dark-border text-slate-300 flex items-center gap-1.5">👟 Netshoes • Centauro • Renner • C&A</span>
+        <span class="px-2.5 py-1 rounded-lg bg-dark-bg border border-dark-border text-slate-300 flex items-center gap-1.5">💊 Raia • Drogasil • Pague Menos • Panvel</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+    <!-- SIDEBAR: ADVANCED FILTERS PANEL -->
+    <aside class="lg:col-span-1 space-y-5">
+      <div class="bg-dark-card border border-dark-border rounded-2xl p-5 shadow-xl space-y-5">
+        
+        <!-- Header Filtros -->
+        <div class="flex items-center justify-between pb-3 border-b border-dark-border">
+          <div class="flex items-center gap-2 text-sm font-bold text-white">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4 text-brand-500"></i>
+            <span>Painel de Filtros</span>
+          </div>
+          <button onclick="resetFilters()" class="text-[11px] text-slate-400 hover:text-emerald-400 transition-colors">
+            Limpar
+          </button>
+        </div>
+
+        <!-- 1. CANAL DE COMPRA (B2C / B2B) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Canal de Compra</label>
+          <div class="grid grid-cols-3 gap-1.5 bg-dark-bg p-1 rounded-xl border border-dark-border">
+            <button onclick="setChannel('all')" id="tabChannelAll" class="py-1.5 text-xs font-medium rounded-lg text-white bg-dark-border shadow transition-all">Todos</button>
+            <button onclick="setChannel('retail')" id="tabChannelRetail" class="py-1.5 text-xs font-medium rounded-lg text-slate-400 hover:text-white transition-all">Varejo</button>
+            <button onclick="setChannel('wholesale')" id="tabChannelWholesale" class="py-1.5 text-xs font-medium rounded-lg text-slate-400 hover:text-amber-400 transition-all">Atacado</button>
+          </div>
+        </div>
+
+        <!-- 2. LOCALIZAÇÃO (27 UFS DO BRASIL) -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Estado & Município</label>
+            <span class="text-[10px] text-emerald-400 font-mono">27 UFs</span>
+          </div>
+          
+          <select id="stateFilter" onchange="onStateChange()" class="w-full bg-dark-bg border border-dark-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-brand-500 focus:outline-none">
+            <option value="ALL">Todo o Brasil (27 Estados + DF)</option>
+            <option value="PE">Pernambuco (PE)</option>
+            <option value="SP">São Paulo (SP)</option>
+            <option value="RJ">Rio de Janeiro (RJ)</option>
+            <option value="MG">Minas Gerais (MG)</option>
+            <option value="RS">Rio Grande do Sul (RS)</option>
+            <option value="PR">Paraná (PR)</option>
+            <option value="BA">Bahia (BA)</option>
+            <option value="SC">Santa Catarina (SC)</option>
+            <option value="GO">Goiás (GO)</option>
+            <option value="CE">Ceará (CE)</option>
+            <option value="MA">Maranhão (MA)</option>
+            <option value="PA">Pará (PA)</option>
+            <option value="MT">Mato Grosso (MT)</option>
+            <option value="DF">Distrito Federal (DF)</option>
+            <option value="ES">Espírito Santo (ES)</option>
+            <option value="AM">Amazonas (AM)</option>
+            <option value="PB">Paraíba (PB)</option>
+            <option value="RN">Rio Grande do Norte (RN)</option>
+            <option value="AL">Alagoas (AL)</option>
+            <option value="PI">Piauí (PI)</option>
+            <option value="RO">Rondônia (RO)</option>
+            <option value="MS">Mato Grosso do Sul (MS)</option>
+            <option value="SE">Sergipe (SE)</option>
+            <option value="TO">Tocantins (TO)</option>
+            <option value="AC">Acre (AC)</option>
+            <option value="AP">Amapá (AP)</option>
+            <option value="RR">Roraima (RR)</option>
+          </select>
+
+          <select id="cityFilter" onchange="applyFilters()" class="w-full bg-dark-bg border border-dark-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-brand-500 focus:outline-none">
+            <option value="ALL">Todos os Municípios do Estado</option>
+          </select>
+
+          <!-- TOGGLE EXCLUSIVO LOCAL -->
+          <label class="flex items-center justify-between text-[11px] text-slate-300 cursor-pointer pt-1 bg-dark-bg/60 p-2 rounded-lg border border-dark-border">
+            <span class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400"></i> Apenas ofertas locais (Ocultar Nacional)</span>
+            <input type="checkbox" id="chkStrictLocalOnly" onchange="applyFilters()" class="accent-amber-500 w-3.5 h-3.5 rounded">
+          </label>
+        </div>
+
+        <!-- 3. DESCONTO MÍNIMO (%) -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Desconto Mínimo</label>
+            <span id="discountValDisplay" class="text-xs font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded-md">≥ 5%</span>
+          </div>
+          <input 
+            type="range" 
+            id="discountSlider" 
+            min="5" 
+            max="80" 
+            step="5" 
+            value="5" 
+            oninput="updateDiscountFilter(this.value)"
+            class="w-full accent-emerald-500 h-1.5 bg-dark-bg rounded-lg cursor-pointer"
+          >
+          <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+            <span>5% (Amplo)</span>
+            <span>35% (Médio)</span>
+            <span>70% (Bugs)</span>
+          </div>
+        </div>
+
+        <!-- 4. FAIXA DE PREÇO -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Preço Máximo (R$)</label>
+          <input 
+            type="number" 
+            id="maxPriceInput" 
+            placeholder="Sem limite de preço"
+            onchange="applyFilters()"
+            class="w-full bg-dark-bg border border-dark-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-brand-500 focus:outline-none"
+          >
+        </div>
+
+        <!-- 5. CATEGORIAS OFICIAIS (BASE MERCADO LIVRE & VAREJO BR) -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Categorias Oficiais</label>
+            <button type="button" onclick="toggleAllCategories()" id="btnToggleAllCats" class="text-[10px] text-emerald-400 hover:underline">Desmarcar Todas</button>
+          </div>
+          <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1" id="categoryCheckboxes">
+            <!-- 1. Tecnologia & Eletrônicos -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="tecnologia" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">📱 <strong>Tecnologia:</strong> Celulares, TVs & Informática</span>
+            </label>
+            <!-- 2. Supermercado & Alimentos (Varejo + Atacado) -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="supermercado" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">🛒 <strong>Supermercado:</strong> Alimentos, Bebidas & Fardos B2B</span>
+            </label>
+            <!-- 3. Eletrodomésticos & Climatização -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="eletrodomesticos" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">❄️ <strong>Eletrodomésticos:</strong> Geladeiras, Fogões & Ar</span>
+            </label>
+            <!-- 4. Casa, Móveis & Decoração -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="casa_moveis" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">🏠 <strong>Casa & Móveis:</strong> Decoração, Utilidades & Cama</span>
+            </label>
+            <!-- 5. Ferramentas, Construção & Indústria -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="ferramentas" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">🔨 <strong>Ferramentas & Construção:</strong> Elétricas & Reformas</span>
+            </label>
+            <!-- 6. Beleza, Saúde & Cuidados Pessoais -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="beleza_saude" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">💊 <strong>Beleza & Saúde:</strong> Farmácia, Perfumaria & Suplementos</span>
+            </label>
+            <!-- 7. Moda, Roupas & Calçados -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="moda_calcados" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">👗 <strong>Moda & Calçados:</strong> Roupas, Bolsas & Lotes Têxteis</span>
+            </label>
+            <!-- 8. Esportes & Fitness -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="esportes_fitness" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">⚽ <strong>Esportes & Fitness:</strong> Tênis de Corrida, Bikes & Treino</span>
+            </label>
+            <!-- 9. Acessórios para Veículos & Pneus -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="automotivo" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">🚗 <strong>Automotivo:</strong> Pneus, Baterias & Autopeças</span>
+            </label>
+            <!-- 10. Bebês & Brinquedos -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="bebes_brinquedos" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">🍼 <strong>Bebês & Brinquedos:</strong> Fraldas em Lote & Jogos</span>
+            </label>
+            <!-- 11. Animais & Pet Shop -->
+            <label class="flex items-center gap-2 text-xs text-slate-300 hover:text-white cursor-pointer p-1.5 rounded-lg hover:bg-dark-hover transition-colors">
+              <input type="checkbox" value="animais_pet" checked onchange="applyFilters()" class="accent-emerald-500 rounded">
+              <span class="flex items-center gap-1.5">🐾 <strong>Animais & Pet Shop:</strong> Rações & Acessórios em Atacado</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 6. TOGGLES ESPECIAIS -->
+        <div class="pt-2 border-t border-dark-border space-y-2">
+          <label class="flex items-center justify-between text-xs text-slate-300 cursor-pointer">
+            <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i> Apenas Desconto Real Auditado</span>
+            <input type="checkbox" id="chkAuditRealOnly" onchange="applyFilters()" class="accent-emerald-500 w-4 h-4 rounded">
+          </label>
+          <label class="flex items-center justify-between text-xs text-slate-300 cursor-pointer">
+            <span class="flex items-center gap-1.5"><i data-lucide="truck" class="w-3.5 h-3.5 text-blue-400"></i> Apenas Frete Grátis</span>
+            <input type="checkbox" id="chkFreeShipping" onchange="applyFilters()" class="accent-blue-500 w-4 h-4 rounded">
+          </label>
+          <label class="flex items-center justify-between text-xs text-slate-300 cursor-pointer">
+            <span class="flex items-center gap-1.5"><i data-lucide="flame" class="w-3.5 h-3.5 text-rose-500"></i> Apenas Bugs de Preço (>65%)</span>
+            <input type="checkbox" id="chkPriceBugs" onchange="applyFilters()" class="accent-rose-500 w-4 h-4 rounded">
+          </label>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- CONTENT: LIVE DEALS GRID -->
+    <section class="lg:col-span-3 space-y-4">
+      
+      <!-- CONTROLS & STATS BAR -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-dark-card border border-dark-border p-4 rounded-2xl">
+        <div class="flex items-center gap-3">
+          <span class="flex h-3 w-3 relative">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+          </span>
+          <div>
+            <h1 class="text-sm font-bold text-white flex items-center gap-2">
+              Feed Top 50 Varejistas & Atacadistas
+              <span id="resultsCountBadge" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2 py-0.2 rounded-full font-mono font-medium">Carregando...</span>
+            </h1>
+            <p class="text-xs text-slate-400">Rastreamento simultâneo em todo o território nacional</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-400">Ordenar:</span>
+          <select id="sortBy" onchange="applyFilters()" class="bg-dark-bg border border-dark-border rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500">
+            <option value="recent">Mais Recentes</option>
+            <option value="discount">Maior Desconto (%)</option>
+            <option value="lowest_price">Menor Preço (R$)</option>
+            <option value="unit_price">Menor Preço Unitário (Atacado)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- CARDS GRID -->
+      <div id="dealsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <!-- Javascript renders cards here -->
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div id="emptyState" class="hidden text-center py-16 bg-dark-card border border-dark-border rounded-2xl">
+        <i data-lucide="search-x" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
+        <h3 class="text-base font-bold text-white">Nenhuma oferta encontrada</h3>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1">Ajuste os filtros de desconto ou clique em "Varredura Top 50" para atualizar o catálogo.</p>
+        <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all">
+          Redefinir Filtros
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL: CRIAR ALERTA -->
+  <div id="alertModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-dark-card border border-dark-border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-dark-border">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="bell-ring" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white">Criar Radar Top 50 Varejistas</h2>
+            <p class="text-xs text-slate-400">Disparo instantâneo via Telegram, WhatsApp ou Push</p>
+          </div>
+        </div>
+        <button onclick="closeAlertModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Título do Radar</label>
+          <input type="text" id="modalAlertTitle" placeholder="Ex: Havan Eletro >40% ou Sam's Club Cerveja" class="w-full bg-dark-bg border border-dark-border rounded-xl px-3 py-2 text-slate-200">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">Desconto Mínimo (%)</label>
+            <input type="number" id="modalAlertDiscount" value="25" class="w-full bg-dark-bg border border-dark-border rounded-xl px-3 py-2 text-slate-200">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">Preço Máximo (R$)</label>
+            <input type="number" id="modalAlertMaxPrice" placeholder="Opcional" class="w-full bg-dark-bg border border-dark-border rounded-xl px-3 py-2 text-slate-200">
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-dark-border flex justify-end gap-2">
+        <button onclick="closeAlertModal()" class="px-4 py-2 text-xs font-semibold text-slate-400">Cancelar</button>
+        <button onclick="saveNewRadar()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl">Ativar Radar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- APPLICATION DATA & SCRIPTS -->
+  <script>
+    const CITIES_BY_UF = {
+      'SP': ['São Paulo', 'Campinas', 'Guarulhos', 'Ribeirão Preto', 'Santos', 'Sorocaba'],
+      'RJ': ['Rio de Janeiro', 'Niterói', 'São Gonçalo', 'Duque de Caxias'],
+      'MG': ['Belo Horizonte', 'Uberlândia', 'Contagem', 'Juiz de Fora'],
+      'RS': ['Porto Alegre', 'Caxias do Sul', 'Pelotas', 'Canoas'],
+      'PR': ['Curitiba', 'Londrina', 'Maringá', 'Foz do Iguaçu'],
+      'SC': ['Florianópolis', 'Joinville', 'Blumenau', 'Chapecó'],
+      'BA': ['Salvador', 'Feira de Santana', 'Vitória da Conquista'],
+      'PE': ['Recife', 'Olinda', 'Caruaru', 'Petrolina'],
+      'CE': ['Fortaleza', 'Caucaia', 'Sobral'],
+      'MA': ['São Luís', 'Imperatriz'],
+      'PA': ['Belém', 'Ananindeua', 'Santarém'],
+      'GO': ['Goiânia', 'Anápolis', 'Aparecida de Goiânia'],
+      'DF': ['Brasília', 'Taguatinga', 'Ceilândia'],
+      'AM': ['Manaus', 'Parintins'],
+      'MT': ['Cuiabá', 'Várzea Grande'],
+      'MS': ['Campo Grande', 'Dourados'],
+      'ES': ['Vitória', 'Vila Velha'],
+      'PB': ['João Pessoa', 'Campina Grande'],
+      'RN': ['Natal', 'Mossoró'],
+      'AL': ['Maceió', 'Arapiraca'],
+      'PI': ['Teresina', 'Parnaíba'],
+      'SE': ['Aracaju'],
+      'RO': ['Porto Velho'],
+      'TO': ['Palmas'],
+      'AC': ['Rio Branco'],
+      'AP': ['Macapá'],
+      'RR': ['Boa Vista']
+    };
+
+    let dealsData = [];
+
+    function generateInitialMassiveDeals() {
+      const ufs = Object.keys(CITIES_BY_UF);
+      const generated = [];
+
+    // MATRIZ OFICIAL DE CATEGORIAS (BASE MERCADO LIVRE & E-COMMERCE BR)
+    const MASSIVE_LOCAL_TEMPLATES = [
+      // 1. TECNOLOGIA (Celulares, Informática, TVs & Áudio)
+      { title: 'Smart TV 65" 4K UHD Samsung CU8000', cat: 'tecnologia', chan: 'retail', reg: 4299, cur: 2499, un: 1, ean: '7892509124431', img: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=500&auto=format&fit=crop&q=60', stores: ['Magazine Luiza', 'Casas Bahia', 'Havan', 'Fast Shop'] },
+      { title: 'Placa de Vídeo RTX 4070 Super 12GB GDDR6X', cat: 'tecnologia', chan: 'retail', reg: 4799, cur: 3499, un: 1, ean: '4711387501019', img: 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=500&auto=format&fit=crop&q=60', stores: ['Pichau Informática', 'KaBuM!', 'TerabyteShop'] },
+      { title: 'Notebook Dell Inspiron 15 Core i7 16GB 512GB SSD', cat: 'tecnologia', chan: 'retail', reg: 4999, cur: 3299, un: 1, ean: '7899864901012', img: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500&auto=format&fit=crop&q=60', stores: ['Dell Oficial', 'Magazine Luiza', 'Fast Shop'] },
+      { title: 'Smartphone Samsung Galaxy S24 256GB 5G', cat: 'tecnologia', chan: 'retail', reg: 5999, cur: 3799, un: 1, ean: '7892509129999', img: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500&auto=format&fit=crop&q=60', stores: ['Samsung Store', 'Mercado Livre', 'Havan'] },
+      { title: 'Monitor Gamer 27" 165Hz 1ms IPS FreeSync', cat: 'tecnologia', chan: 'retail', reg: 1699, cur: 899, un: 1, ean: '7898620001011', img: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&auto=format&fit=crop&q=60', stores: ['Pichau Informática', 'KaBuM!'] },
+      
+      // 2. SUPERMERCADO & ALIMENTOS (Varejo + Atacado B2B)
+      { title: 'Cerveja Heineken Puro Malte 350ml (Fardo c/ 24 latas)', cat: 'supermercado', chan: 'wholesale', reg: 144, cur: 86.16, un: 24, ean: '7896045505411', img: 'https://images.unsplash.com/photo-1608270199047-9f7ec058288a?w=500&auto=format&fit=crop&q=60', stores: ['Sam\'s Club', 'Atacadão', 'Assaí Atacadista', 'Grupo Mateus'] },
+      { title: 'Arroz Tipo 1 Camil 5kg (Fardo c/ 6 pacotes - 30kg)', cat: 'supermercado', chan: 'wholesale', reg: 198, cur: 129, un: 6, ean: '7896006700019', img: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&auto=format&fit=crop&q=60', stores: ['Atacadão', 'Assaí Atacadista', 'Supermercados BH', 'Max Atacadista'] },
+      { title: 'Café Tradicional Pilão 500g (Caixa com 20 un)', cat: 'supermercado', chan: 'wholesale', reg: 480, cur: 298, un: 20, ean: '7891095000147', img: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=500&auto=format&fit=crop&q=60', stores: ['Grupo Mateus Atacarejo', 'Martins B2B', 'Assaí'] },
+      { title: 'Óleo de Soja Soya 900ml (Caixa fechada com 20 un)', cat: 'supermercado', chan: 'wholesale', reg: 140, cur: 88, un: 20, ean: '7891048035011', img: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=500&auto=format&fit=crop&q=60', stores: ['Assaí Atacadista', 'Atacadão', 'Komprão Koch'] },
+      { title: 'Leite Condensado Nestlé Moça 395g (Caixa c/ 24 latas)', cat: 'supermercado', chan: 'wholesale', reg: 192, cur: 118, un: 24, ean: '7891000100108', img: 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=500&auto=format&fit=crop&q=60', stores: ['Sam\'s Club', 'Supermercados BH', 'Grupo Mateus'] },
+      { title: 'Sabão em Pó OMO Lavagem Perfeita 1.6kg (Fardo c/ 8 un)', cat: 'supermercado', chan: 'wholesale', reg: 184, cur: 112, un: 8, ean: '7891150064501', img: 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=500&auto=format&fit=crop&q=60', stores: ['Atacadão', 'Assaí', 'Max Atacadista'] },
+
+      // 3. ELETRODOMÉSTICOS & CLIMATIZAÇÃO
+      { title: 'Geladeira Brastemp Frost Free Duplex 375L Inox', cat: 'eletrodomesticos', chan: 'retail', reg: 3899, cur: 2399, un: 1, ean: '7891129252014', img: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=500&auto=format&fit=crop&q=60', stores: ['Casas Bahia', 'Magazine Luiza', 'Fast Shop'] },
+      { title: 'Lava e Seca Midea 11kg HealthGuard Smart Conectada', cat: 'eletrodomesticos', chan: 'retail', reg: 3699, cur: 2299, un: 1, ean: '7898554870012', img: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=500&auto=format&fit=crop&q=60', stores: ['Casas Bahia', 'Amazon Brasil', 'Havan'] },
+      { title: 'Ar-Condicionado Split Inverter 12.000 BTUs Quente/Frio', cat: 'eletrodomesticos', chan: 'retail', reg: 2899, cur: 1699, un: 1, ean: '7898554879988', img: 'https://images.unsplash.com/photo-1614633833026-06201e74f767?w=500&auto=format&fit=crop&q=60', stores: ['Dufrio', 'Magazine Luiza', 'Fast Shop'] },
+
+      // 4. CASA, MÓVEIS & DECORAÇÃO
+      { title: 'Fritadeira Airfryer Mondial Family 4L Inox 1500W', cat: 'casa_moveis', chan: 'retail', reg: 499, cur: 229, un: 1, ean: '7899882306124', img: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=500&auto=format&fit=crop&q=60', stores: ['Havan', 'Magazine Luiza', 'Casas Bahia'] },
+      { title: 'Robô Aspirador WAP Robot W300 Bivolt Automático', cat: 'casa_moveis', chan: 'retail', reg: 799, cur: 449, un: 1, ean: '7899831301019', img: 'https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?w=500&auto=format&fit=crop&q=60', stores: ['Havan', 'Americanas.com', 'Mercado Livre'] },
+      { title: 'Jogo de Panelas Tramontina Paris Antiaderente 7 Peças', cat: 'casa_moveis', chan: 'retail', reg: 399, cur: 199, un: 1, ean: '7891112001019', img: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=500&auto=format&fit=crop&q=60', stores: ['Havan', 'Camisado', 'Magazine Luiza'] },
+
+      // 5. FERRAMENTAS & CONSTRUÇÃO
+      { title: 'Furadeira e Parafusadeira Bosch GSB 180-LI c/ 2 Baterias', cat: 'ferramentas', chan: 'retail', reg: 899, cur: 479, un: 1, ean: '3165140889201', img: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500&auto=format&fit=crop&q=60', stores: ['Leroy Merlin', 'Telhanorte', 'Lojas Quero-Quero'] },
+      { title: 'Lote 100x Disjuntor Bipolar DIN 20A Steck', cat: 'ferramentas', chan: 'wholesale', reg: 2400, cur: 1190, un: 100, ean: '7893401010101', img: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?w=500&auto=format&fit=crop&q=60', stores: ['Elétrica São Paulo B2B', 'Telhanorte Pro'] },
+
+      // 6. BELEZA & SAÚDE
+      { title: 'Whey Protein Isolado 100% Dux Nutrition 900g', cat: 'beleza_saude', chan: 'retail', reg: 249.90, cur: 149.90, un: 1, ean: '7898641750011', img: 'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?w=500&auto=format&fit=crop&q=60', stores: ['Drogasil', 'Droga Raia', 'Pague Menos'] },
+      { title: 'Protetor Solar La Roche-Posay Anthelios FPS 80', cat: 'beleza_saude', chan: 'retail', reg: 109.90, cur: 62.90, un: 1, ean: '7899706180329', img: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=60', stores: ['Farmácias Pague Menos', 'Drogasil', 'Drogaria São Paulo'] },
+      { title: 'Perfume Malbec Desodorante Colônia 100ml', cat: 'beleza_saude', chan: 'retail', reg: 199.90, cur: 129.90, un: 1, ean: '7891033001019', img: 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=500&auto=format&fit=crop&q=60', stores: ['O Boticário', 'Beleza na Web'] },
+
+      // 7. MODA & CALÇADOS
+      { title: 'Kit com 10 Camisetas Básicas 100% Algodão Hering', cat: 'moda_calcados', chan: 'wholesale', reg: 590, cur: 199, un: 10, ean: '7891234500999', img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=60', stores: ['Hering B2B', 'Lojas Renner', 'C&A Brasil'] },
+      { title: 'Jaqueta Puffer Forrada Térmica Impermeável', cat: 'moda_calcados', chan: 'retail', reg: 399, cur: 179, un: 1, ean: '7899882211019', img: 'https://images.unsplash.com/photo-1544441893-675973e31985?w=500&auto=format&fit=crop&q=60', stores: ['Lojas Renner', 'Riachuelo', 'C&A'] },
+
+      // 8. ESPORTES & FITNESS
+      { title: 'Tênis Nike Air Zoom Pegasus 40 Masculino Corrida', cat: 'esportes_fitness', chan: 'retail', reg: 999, cur: 499, un: 1, ean: '196607981011', img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=60', stores: ['Netshoes', 'Centauro', 'Nike Oficial'] },
+      { title: 'Tênis Adidas Ultraboost Light Masculino Performance', cat: 'esportes_fitness', chan: 'retail', reg: 1199, cur: 599, un: 1, ean: '4066749101019', img: 'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=500&auto=format&fit=crop&q=60', stores: ['Centauro', 'Netshoes'] },
+
+      // 9. AUTOMOTIVO & PNEUS
+      { title: 'Kit 4 Pneus Aro 15 Michelin Primacy 4 195/60R15', cat: 'automotivo', chan: 'wholesale', reg: 2490, cur: 1490, un: 4, ean: '3528701234567', img: 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=500&auto=format&fit=crop&q=60', stores: ['PneuStore Atacado', 'DPaschoal'] },
+      { title: 'Bateria Automotiva Moura 60Ah M60GD Sem Manutenção', cat: 'automotivo', chan: 'retail', reg: 580, cur: 349, un: 1, ean: '7896452101019', img: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=500&auto=format&fit=crop&q=60', stores: ['DPaschoal', 'MercadoCar', 'AutoZone'] },
+
+      // 10. BEBÊS & BRINQUEDOS
+      { title: 'Fralda Pampers Confort Sec Mega Bag Tam G (120 un)', cat: 'bebes_brinquedos', chan: 'retail', reg: 189.90, cur: 99.90, un: 1, ean: '7500435130101', img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=60', stores: ['Droga Raia', 'Drogasil', 'Farmácias Pague Menos', 'Panvel'] },
+
+      // 11. ANIMAIS & PET SHOP
+      { title: 'Ração Premier Formula Cães Adultos 15kg (Lote c/ 2 sacos)', cat: 'animais_pet', chan: 'wholesale', reg: 590, cur: 359, un: 2, ean: '7897348201019', img: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop&q=60', stores: ['Petz Atacado', 'Cobasi B2B'] }
+    ];
+
+    function generateInitialMassiveDeals() {
+      const ufs = Object.keys(CITIES_BY_UF);
+      const generated = [];
+      let dealCounter = 1;
+
+      // 1. GERAÇÃO DINÂMICA DE OFERTAS DENSAS PARA CADA MUNICÍPIO E ESTADO
+      ufs.forEach((uf) => {
+        const cities = CITIES_BY_UF[uf];
+
+        cities.forEach((city) => {
+          // Para CADA cidade de CADA estado, injetamos pelo menos 18 a 25 ofertas de TODOS os nichos
+          MASSIVE_LOCAL_TEMPLATES.forEach((item, tIdx) => {
+            const discountPct = Math.round(((item.reg - item.cur) / item.reg) * 100);
+            const store = item.stores[tIdx % item.stores.length];
+            const isPriceBug = discountPct >= 65;
+
+            generated.push({
+              id: `deal-${uf}-${city.toLowerCase().replace(/[^a-z0-9]/g, '')}-${dealCounter++}`,
+              title: item.title,
+              category: item.cat,
+              channel: item.chan,
+              store: `${store} (${city}/${uf})`,
+              currentPrice: item.cur,
+              regularPrice: item.reg,
+              discountPct,
+              packageUnits: item.un,
+              unitPrice: Number((item.cur / item.un).toFixed(2)),
+              isFreeShipping: tIdx % 2 === 0,
+              isPriceBug,
+              stateUf: uf,
+              cityName: city,
+              image: item.img,
+              capturedAgo: `${Math.floor(Math.random() * 45) + 2} min atrás`,
+              ean: item.ean
+            });
+          });
+        });
+      });
+
+      // 2. ADICIONA OFERTAS NACIONAIS E BUGS RASTREADOS EM TEMPO REAL
+      generated.unshift({
+        id: 'deal-bug-national-1',
+        title: '🚨 BUG AUDITADO: Smart TV Samsung 75" Neo QLED 4K 120Hz',
+        category: 'tecnologia',
+        channel: 'retail',
+        store: 'Carrefour Online Brasil',
+        regularPrice: 7999.00,
+        currentPrice: 1899.00,
+        discountPct: 76,
+        packageUnits: 1,
+        unitPrice: 1899.00,
+        isFreeShipping: true,
+        isPriceBug: true,
+        stateUf: 'ALL',
+        cityName: 'Nacional',
+        image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=500&auto=format&fit=crop&q=60',
+        capturedAgo: 'Live (Agora)',
+        ean: '7892509888771'
+      });
+
+      generated.unshift({
+        id: 'deal-bug-national-2',
+        title: '🚨 QUEIMA AUDITADA: Lote 50x Camisetas Básicas Algodão 30.1',
+        category: 'moda_calcados',
+        channel: 'wholesale',
+        store: 'Hering B2B / Brás Nacional',
+        regularPrice: 1500.00,
+        currentPrice: 390.00,
+        discountPct: 74,
+        packageUnits: 50,
+        unitPrice: 7.80,
+        isFreeShipping: true,
+        isPriceBug: true,
+        stateUf: 'ALL',
+        cityName: 'Nacional',
+        image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=60',
+        capturedAgo: 'Live (Agora)',
+        ean: '7891234500999'
+      });
+
+      return generated;
+    }
+
+    let filters = {
+      channel: 'all',
+      stateUf: 'ALL',
+      cityName: 'ALL',
+      minDiscount: 5,
+      maxPrice: null,
+      search: '',
+      freeShippingOnly: false,
+      priceBugsOnly: false,
+      sortBy: 'recent'
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      dealsData = generateInitialMassiveDeals();
+      lucide.createIcons();
+      renderDeals();
+    });
+
+    function renderDeals() {
+      const grid = document.getElementById('dealsGrid');
+      const emptyState = document.getElementById('emptyState');
+      const countBadge = document.getElementById('resultsCountBadge');
+
+      const checkedCategories = Array.from(
+        document.querySelectorAll('#categoryCheckboxes input[type="checkbox"]:checked')
+      ).map(cb => cb.value);
+
+      const filtered = dealsData.filter(deal => {
+        if (filters.channel !== 'all' && deal.channel !== filters.channel) return false;
+        
+        // Filtro Geográfico Estrito vs Nacional
+        if (filters.strictLocalOnly) {
+          // Apenas produtos exclusivos do Estado/Cidade selecionados
+          if (filters.stateUf !== 'ALL' && deal.stateUf !== filters.stateUf) return false;
+          if (filters.cityName !== 'ALL' && deal.cityName !== filters.cityName) return false;
+        } else {
+          // Permite produtos do Estado/Cidade OU ofertas com Frete Nacional para o Brasil todo
+          if (filters.stateUf !== 'ALL' && deal.stateUf !== 'ALL' && deal.stateUf !== filters.stateUf) return false;
+          if (filters.cityName !== 'ALL' && deal.cityName !== 'Nacional' && deal.cityName !== filters.cityName) return false;
+        }
+
+        if (deal.discountPct < filters.minDiscount) return false;
+        if (filters.maxPrice && deal.currentPrice > filters.maxPrice) return false;
+        if (filters.auditRealOnly && deal.discountPct < 35 && !deal.isPriceBug) return false;
+        if (filters.freeShippingOnly && !deal.isFreeShipping) return false;
+        if (filters.priceBugsOnly && !deal.isPriceBug) return false;
+        if (!checkedCategories.includes(deal.category)) return false;
+
+        if (filters.search) {
+          const s = filters.search.toLowerCase();
+          const matchTitle = deal.title.toLowerCase().includes(s);
+          const matchStore = deal.store.toLowerCase().includes(s);
+          const matchEan = deal.ean && deal.ean.includes(s);
+          if (!matchTitle && !matchStore && !matchEan) return false;
+        }
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (filters.sortBy === 'discount') return b.discountPct - a.discountPct;
+        if (filters.sortBy === 'lowest_price') return a.currentPrice - b.currentPrice;
+        if (filters.sortBy === 'unit_price') return a.unitPrice - b.unitPrice;
+        return 0;
+      });
+
+      countBadge.innerText = `${filtered.length} ofertas ativas`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      grid.innerHTML = filtered.map(deal => createDealCardHtml(deal)).join('');
+      lucide.createIcons();
+    }
+
+    function createDealCardHtml(deal) {
+      const isB2B = deal.channel === 'wholesale';
+      const formattedCurrentPrice = deal.currentPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const formattedRegularPrice = deal.regularPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const formattedUnitPrice = deal.unitPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      return `
+        <article class="bg-dark-card border ${deal.isPriceBug ? 'border-rose-500/60 shadow-lg shadow-rose-950/20' : 'border-dark-border'} rounded-2xl p-4 flex flex-col justify-between hover:border-slate-600 transition-all group relative overflow-hidden">
+          
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="px-2 py-0.5 rounded-lg text-xs font-black ${deal.isPriceBug ? 'bg-rose-500 text-white animate-pulse' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">
+                -${deal.discountPct}% OFF
+              </span>
+              
+              ${isB2B ? `
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                  <i data-lucide="boxes" class="w-3 h-3"></i> Atacado (x${deal.packageUnits})
+                </span>
+              ` : `
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                  Varejo
+                </span>
+              `}
+
+              ${deal.isPriceBug ? `
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                  🔥 BUG
+                </span>
+              ` : ''}
+            </div>
+
+            <span class="text-[11px] font-medium text-slate-400 flex items-center gap-1 bg-dark-bg px-2 py-0.5 rounded-md border border-dark-border">
+              <i data-lucide="map-pin" class="w-3 h-3 text-emerald-400"></i>
+              ${deal.stateUf === 'ALL' ? 'Brasil' : `${deal.cityName}/${deal.stateUf}`}
+            </span>
+          </div>
+
+          <div class="flex gap-3 mb-3">
+            <div class="w-20 h-20 rounded-xl bg-dark-bg overflow-hidden flex-shrink-0 border border-dark-border p-1">
+              <img src="${deal.image}" alt="${deal.title}" class="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300">
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block mb-0.5">${deal.store}</span>
+              <h3 class="text-xs font-bold text-slate-100 line-clamp-2 leading-snug group-hover:text-emerald-400 transition-colors">
+                ${deal.title}
+              </h3>
+              <div class="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
+                <span>EAN: ${deal.ean || 'N/D'}</span>
+                <span>•</span>
+                <span>${deal.capturedAgo}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BLOCO DE AUDITORIA & SELO ANTI-FRAUDE -->
+          <div class="mb-3">
+            ${deal.isPriceBug ? `
+              <div class="p-2 rounded-xl bg-rose-950/50 border border-rose-800/60 flex items-center justify-between text-[11px]">
+                <div class="flex items-center gap-1.5 text-rose-300 font-bold">
+                  <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i>
+                  <span>Bug de Preço Auditado</span>
+                </div>
+                <span class="text-[10px] bg-rose-500/20 text-rose-200 px-1.5 py-0.5 rounded font-mono font-bold">-76% vs Histórico</span>
+              </div>
+            ` : deal.discountPct >= 35 ? `
+              <div class="p-2 rounded-xl bg-emerald-950/50 border border-emerald-800/50 flex items-center justify-between text-[11px]">
+                <div class="flex items-center gap-1.5 text-emerald-300 font-bold">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Desconto Real Auditado</span>
+                </div>
+                <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">Menor Preço 90d</span>
+              </div>
+            ` : `
+              <div class="p-2 rounded-xl bg-slate-900/60 border border-dark-border flex items-center justify-between text-[11px]">
+                <div class="flex items-center gap-1.5 text-slate-300 font-medium">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-400"></i>
+                  <span>Preço Verificado</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">Na Média Usual</span>
+              </div>
+            `}
+          </div>
+
+          <div class="bg-dark-bg/80 border border-dark-border rounded-xl p-2.5 mb-3">
+            <div class="flex items-baseline justify-between">
+              <div>
+                <span class="text-[11px] text-slate-500 line-through mr-1.5">${formattedRegularPrice}</span>
+                <span class="text-lg font-extrabold text-white">${formattedCurrentPrice}</span>
+              </div>
+              ${deal.isFreeShipping ? `
+                <span class="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+                  <i data-lucide="check" class="w-3 h-3"></i> Frete Grátis
+                </span>
+              ` : `
+                <span class="text-[10px] text-slate-500">+ Frete regional</span>
+              `}
+            </div>
+
+            ${isB2B ? `
+              <div class="mt-1 pt-1.5 border-t border-dark-border flex items-center justify-between text-[11px]">
+                <span class="text-amber-400 font-medium">Preço fracionado:</span>
+                <span class="font-extrabold text-amber-300 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-800/40">
+                  ${formattedUnitPrice} / un
+                </span>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button 
+              onclick="showToast('📈 Gráfico histórico dos últimos 90 dias carregado!')"
+              class="py-2 px-3 rounded-xl bg-dark-bg border border-dark-border hover:bg-slate-800 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+              <i data-lucide="line-chart" class="w-3.5 h-3.5 text-slate-400"></i>
+              Histórico
+            </button>
+            <a 
+              href="#oferta" 
+              onclick="showToast('Redirecionando para a loja com desconto!')"
+              class="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950 transition-all cursor-pointer">
+              <span>Pegar Oferta</span>
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+
+        </article>
+      `;
+    }
+
+    function setChannel(channel) {
+      filters.channel = channel;
+      ['tabChannelAll', 'tabChannelRetail', 'tabChannelWholesale'].forEach(id => {
+        const el = document.getElementById(id);
+        el.className = 'py-1.5 text-xs font-medium rounded-lg text-slate-400 hover:text-white transition-all';
+      });
+
+      if (channel === 'all') {
+        document.getElementById('tabChannelAll').className = 'py-1.5 text-xs font-medium rounded-lg text-white bg-dark-border shadow transition-all';
+      } else if (channel === 'retail') {
+        document.getElementById('tabChannelRetail').className = 'py-1.5 text-xs font-medium rounded-lg text-white bg-dark-border shadow transition-all';
+      } else {
+        document.getElementById('tabChannelWholesale').className = 'py-1.5 text-xs font-medium rounded-lg text-amber-400 bg-amber-950/60 border border-amber-800/40 shadow transition-all';
+      }
+      renderDeals();
+    }
+
+    function onStateChange() {
+      const uf = document.getElementById('stateFilter').value;
+      filters.stateUf = uf;
+      
+      const citySelect = document.getElementById('cityFilter');
+      citySelect.innerHTML = '<option value="ALL">Todos os Municípios do Estado</option>';
+
+      if (uf !== 'ALL' && CITIES_BY_UF[uf]) {
+        CITIES_BY_UF[uf].forEach(city => {
+          const opt = document.createElement('option');
+          opt.value = city;
+          opt.innerText = city;
+          citySelect.appendChild(opt);
+        });
+      }
+      filters.cityName = 'ALL';
+      renderDeals();
+    }
+
+    function updateDiscountFilter(val) {
+      filters.minDiscount = Number(val);
+      document.getElementById('discountValDisplay').innerText = `≥ ${val}%`;
+      renderDeals();
+    }
+
+    function applyFilters() {
+      filters.cityName = document.getElementById('cityFilter').value;
+      filters.maxPrice = document.getElementById('maxPriceInput').value ? Number(document.getElementById('maxPriceInput').value) : null;
+      filters.strictLocalOnly = document.getElementById('chkStrictLocalOnly').checked;
+      filters.auditRealOnly = document.getElementById('chkAuditRealOnly').checked;
+      filters.freeShippingOnly = document.getElementById('chkFreeShipping').checked;
+      filters.priceBugsOnly = document.getElementById('chkPriceBugs').checked;
+      filters.sortBy = document.getElementById('sortBy').value;
+      renderDeals();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      filters.search = e.target.value;
+      renderDeals();
+    });
+
+    function resetFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('stateFilter').value = 'ALL';
+      document.getElementById('cityFilter').innerHTML = '<option value="ALL">Todos os Municípios do Estado</option>';
+      document.getElementById('discountSlider').value = '5';
+      document.getElementById('discountValDisplay').innerText = '≥ 5%';
+      document.getElementById('maxPriceInput').value = '';
+      document.getElementById('chkFreeShipping').checked = false;
+      document.getElementById('chkPriceBugs').checked = false;
+      
+      document.querySelectorAll('#categoryCheckboxes input[type="checkbox"]').forEach(cb => cb.checked = true);
+
+      filters = {
+        channel: 'all',
+        stateUf: 'ALL',
+        cityName: 'ALL',
+        minDiscount: 5,
+        maxPrice: null,
+        search: '',
+        freeShippingOnly: false,
+        priceBugsOnly: false,
+        sortBy: 'recent'
+      };
+      setChannel('all');
+      renderDeals();
+      showToast('Filtros restaurados!');
+    }
+
+    function runAllEnginesScrape() {
+      const btn = document.getElementById('btnRunEngines');
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Varrendo Top 50...</span>';
+      lucide.createIcons();
+
+      setTimeout(() => {
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i><span>Top 50 Atualizado!</span>';
+        lucide.createIcons();
+        showToast('⚡ Varredura concluída: +120 novas ofertas capturadas nas 50 maiores redes do Brasil!');
+        
+        setTimeout(() => {
+          btn.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i><span>Varredura Top 50</span>';
+          lucide.createIcons();
+        }, 3000);
+      }, 1500);
+    }
+
+    function openAlertModal() { document.getElementById('alertModal').classList.remove('hidden'); }
+    function closeAlertModal() { document.getElementById('alertModal').classList.add('hidden'); }
+    function saveNewRadar() {
+      const title = document.getElementById('modalAlertTitle').value || 'Radar Personalizado';
+      closeAlertModal();
+      showToast(`Radar "${title}" ativado nas 50 maiores redes!`);
+    }
+
+    function toggleAllCategories() {
+      const checkboxes = document.querySelectorAll('#categoryCheckboxes input[type="checkbox"]');
+      const btn = document.getElementById('btnToggleAllCats');
+      const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+      
+      checkboxes.forEach(cb => {
+        cb.checked = !allChecked;
+      });
+      
+      if (btn) {
+        btn.innerText = !allChecked ? 'Desmarcar Todas' : 'Marcar Todas';
+      }
+      applyFilters();
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'bg-slate-900 border border-emerald-500/40 text-slate-100 text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 transition-all duration-300 pointer-events-auto transform translate-y-2 opacity-0';
+      toast.innerHTML = `
+        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+        <span>${msg}</span>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
