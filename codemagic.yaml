@@ -58,7 +58,7 @@ workflows:
             --type IOS_APP_STORE \
             --create
           keychain add-certificates
-          xcode-project use-profiles --workspace "$XCODE_WORKSPACE"
+          xcode-project use-profiles --project "ios/App/App.xcodeproj"
 
       - name: "Auto-Incremento do Numero de Build"
         script: |
